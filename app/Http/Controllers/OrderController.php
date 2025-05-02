@@ -17,9 +17,16 @@ class OrderController extends Controller
     {
         $this->orderServices = $orderServices;
     }
-    public function index()
+    public function index(Request $request)
     {
-        $response = $this->orderServices->getAllOrders();
+        $validated = \Validator::make($request->all(), [
+            'customer_id' => 'sometimes|exists:customers,id',
+            'status' => 'sometimes|string|in:pending,shipped,delivered',
+        ]);
+        if ($validated->fails()) {
+            return response()->json($validated->errors(), 422);
+        }
+        $response = $this->orderServices->getAllOrders($request->all());
         if (!$response['success']) {
             return response()->json($response, 422);
         }
@@ -31,14 +38,17 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = \Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'product_name' => 'required|string',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
             'status' => 'nullable|string|in:pending,shipped,delivered',
         ]);
-        $response = $this->orderServices->createOrder($validated);
+        if ($validated->fails()) {
+            return response()->json($validated->errors(), 422);
+        }
+        $response = $this->orderServices->createOrder($request->all());
         if (!$response['success']) {
             return response()->json($response, 422);
         }
@@ -49,15 +59,18 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Order $order)
+    public function update(Request $request, int $order)
     {
-        $validated = $request->validate([
+        $validated = \Validator::make($request->all(), [
             'product_name' => 'sometimes|string',
             'quantity' => 'sometimes|integer|min:1',
             'price' => 'sometimes|numeric|min:0',
             'status' => 'sometimes|string|in:pending,shipped,delivered',
         ]);
-        $response = $this->orderServices->updateOrder($order->id, $validated);
+        if ($validated->fails()) {
+            return response()->json($validated->errors(), 422);
+        }
+        $response = $this->orderServices->updateOrder($order, $request->all());
         if (!$response['success']) {
             return response()->json($response, 422);
         }
@@ -68,9 +81,15 @@ class OrderController extends Controller
      * Remove the specified resource from storage.
      */
 
-    public function getOrderStats()
+    public function getOrderStats(Request $request)
     {
-        $response = $this->orderServices->getOrderStats();
+        $validated = \Validator::make($request->all(), [
+            'customer_id' => 'sometimes|exists:customers,id',
+        ]);
+        if ($validated->fails()) {
+            return response()->json($validated->errors(), 422);
+        }
+        $response = $this->orderServices->getOrderStats($request->all());
         if (!$response['success']) {
             return response()->json($response, 422);
         }

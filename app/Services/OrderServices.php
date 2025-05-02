@@ -39,11 +39,19 @@ class OrderServices implements Interfaces\IOrderServices
     }
   }
 
-  public function getAllOrders(): array
+  public function getAllOrders(array $data): array
   {
     try {
       // Fetch all orders logic here
-      $orders = Order::with('customer')->get();
+      $orders = Order::with('customer')
+        ->when(isset($data['customer_id']), function ($query) use ($data) {
+          return $query->where('customer_id', $data['customer_id']);
+        })
+        ->when(isset($data['status']), function ($query) use ($data) {
+          return $query->where('status', $data['status']);
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
       return ['success' => true, 'orders' => $orders];
     } catch (\Exception $e) {
       // Log the error message for debugging
@@ -52,15 +60,20 @@ class OrderServices implements Interfaces\IOrderServices
     }
   }
 
-  public function getOrderStats(): array
+  public function getOrderStats(array $data): array
   {
     try {
       // Fetch order statistics logic here
       $ordersPerStatus = Order::select('status', DB::raw('count(*) as count'))
+        ->when(isset($data['customer_id']), function ($query) use ($data) {
+          return $query->where('customer_id', $data['customer_id']);
+        })
         ->groupBy('status')
         ->pluck('count', 'status')
         ->toArray();
-      $totalRevenue = Order::sum(DB::raw('price * quantity'));
+      $totalRevenue = Order::when(isset($data['customer_id']), function ($query) use ($data) {
+        return $query->where('customer_id', $data['customer_id']);
+      })->sum(DB::raw('price * quantity'));
       return ['success' => true, 'stats' => ['ordersPerStatus' => $ordersPerStatus, 'total_revenue' => $totalRevenue]];
     } catch (\Exception $e) {
       // Log the error message for debugging
