@@ -21,7 +21,7 @@ class OrderController extends Controller
     {
         $validated = \Validator::make($request->all(), [
             'customer_id' => 'sometimes|exists:customers,id',
-            'status' => 'sometimes|string|in:pending,shipped,delivered',
+            'status' => 'sometimes|string|in:pending,shipped',
         ]);
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
@@ -43,7 +43,7 @@ class OrderController extends Controller
             'product_name' => 'required|string',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
-            'status' => 'nullable|string|in:pending,shipped,delivered',
+            'status' => 'nullable|string|in:pending,shipped',
         ]);
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
@@ -65,7 +65,7 @@ class OrderController extends Controller
             'product_name' => 'sometimes|string',
             'quantity' => 'sometimes|integer|min:1',
             'price' => 'sometimes|numeric|min:0',
-            'status' => 'sometimes|string|in:pending,shipped,delivered',
+            'status' => 'sometimes|string|in:pending,shipped',
         ]);
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
