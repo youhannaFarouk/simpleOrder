@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-route('/', function () {
+route::get('/', function () {
     return view('welcome');
 });
 route::post('/orders', [

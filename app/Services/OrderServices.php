@@ -43,7 +43,7 @@ class OrderServices implements Interfaces\IOrderServices
   {
     try {
       // Fetch all orders logic here
-      $orders = Order::with('customer')->all();
+      $orders = Order::with('customer')->get();
       return ['success' => true, 'orders' => $orders];
     } catch (\Exception $e) {
       // Log the error message for debugging
